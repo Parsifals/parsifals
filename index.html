@@ -1,65 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>demo测试</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="https://kbrsh.github.io/wing/dist/css/wing.css"/>
-    <link rel="stylesheet" href="https://kbrsh.github.io/wing/fonts/fonts.css"/>
-    <link rel="stylesheet" href="https://kbrsh.github.io/wing/css/styles.css"/>
-    <style>
-        /* 核心 开始 */
-        .filter-blur::before{
-            display:block;
-            top: 0;
-            position: absolute;
-            content: " ";
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            filter: blur(8px);
-            background: rgb(255, 255, 255,0.9);
-        }
-        .filter-blur {
-            position: relative;
-            z-index: 2;
-            margin: 50px 50px 50px 50px;
-            
-        }
-        /* 核心 结束 */
+<title>Bubble Pop Adventures</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Bubble Pop Adventures">
+<meta name="application-name" content="Bubble Pop Adventures">
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001, user-scalable=no, minimal-ui"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="stylesheet" type="text/css" href="game.css">
+<script type="text/javascript" src="game.js"></script>
+</head>
+<div class="gamecenter-activator"></div>
+<body onLoad="setTimeout(function(){window.scrollTo(0,1)},1);">
 
-        html,body{
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 10;
-        }
-        body{
-            width: 100%;
-            height: 100%;
-            background: url(1.png);
-            background-size: 100% 100%;
-            color: #fff;
-        }
-    </style></head>
-
-<body>
-    <div class="filter-blur">
-        <div class="nav horizontal-align right">
-            <div class="nav-item"><a href="#installation"><strong>首页</strong></a></div>
-            <div class="nav-item"><a href="#guide" target="_blank">论坛</a></div>
-            <div class="nav-item"><a href="https://github.com/kbrsh/wing" target="_blank">成员列表</a></div>
-            <div class="nav-item"><a href="https://github.com/kbrsh/wing" target="_blank"></a></div>
-            <div class="nav-item"><iframe src="https://ghbtns.com/github-btn.html?user=kbrsh&amp;repo=wing&amp;type=star&amp;count=true" frameborder="0" scrolling="0" width="95px" height="20px"></iframe></div>
-        </div>
-        <section class="hero container center text-center">
-            <div class="center">
-                <img src="./img/logo.png" alt="521SEC Logo" height="125">
-                <h1><strong>521SEC Studio</strong></h1>
-                <h6>521SEC网络工作室 麻雀虽小，五脏俱全</h6>
-            </div>
-        </section>
-    </div>
+<div id="ajaxbar">
+	<div id="game"><canvas id="canvas"></canvas><canvas id="bgcanvas" width=480 height=640></canvas></canvas></canvas></div>
+	<div id="orientate"><img src="media/graphics/orientate/landscape.png" /></div>
+	<div id="play" class="play" onClick=""><img src="media/graphics/splash/mobile/cover-start.png" /></div>
+</div>
+<div style="text-align:center;">
+<p>更多源码：<a href="http://www.mycodes.net/" target="_blank">源码之家</a></p>
+</div>
 </body>
-
 </html>
