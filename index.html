@@ -1,27 +1,2554 @@
-<!DOCTYPE html>
-<html>
+ <!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<title>Bubble Pop Adventures</title>
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Bubble Pop Adventures">
-<meta name="application-name" content="Bubble Pop Adventures">
-<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-<meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001, user-scalable=no, minimal-ui"/>
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<link rel="stylesheet" type="text/css" href="game.css">
-<script type="text/javascript" src="game.js"></script>
-</head>
-<div class="gamecenter-activator"></div>
-<body onLoad="setTimeout(function(){window.scrollTo(0,1)},1);">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大富翁游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<div id="ajaxbar">
-	<div id="game"><canvas id="canvas"></canvas><canvas id="bgcanvas" width=480 height=640></canvas></canvas></canvas></div>
-	<div id="orientate"><img src="media/graphics/orientate/landscape.png" /></div>
-	<div id="play" class="play" onClick=""><img src="media/graphics/splash/mobile/cover-start.png" /></div>
-</div>
-<div style="text-align:center;">
-</div>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        .game-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .left-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        
+
+        .game-log-mini {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            width: 250px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .game-log-mini h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .log-item-mini {
+            font-size: 11px;
+            padding: 4px 0;
+            color: #666;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-item-mini:last-child {
+            border-bottom: none;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .board-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .current-player-box {
+            display: flex;
+            width: 200px;
+            max-height: 60px;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            margin: auto auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            
+            overflow-y: auto;
+        }
+
+        .player-badge {
+            align-items: center;
+            font-size: 16px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        .board {
+            width: 95%;
+            height: 95%;
+            max-width: 1000px;
+            max-height: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+            padding: 10px;
+            gap: 4px;
+            position: relative;
+        }
+
+        .board-center {
+            grid-column: 2 / 11;
+            grid-row: 2 / 11;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        .board-title {
+            font-size: 56px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .dice-control {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dice-count-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dice-count-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dice-count-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .dice-count-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .dice-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .dice-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .dice-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .space {
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            padding: 4px;
+            position: relative;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+
+        .space:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+        }
+
+        .space.corner {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .space.chance {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .space.destiny {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        }
+
+        .space.start {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        }
+
+        .space.airport, .space.train, .space.ship, .space.power {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .space.jail {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+
+        .space.prison {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        }
+
+        .space.property.full-set {
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+                filter: brightness(1.1);
+            }
+            50% {
+                box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+                filter: brightness(1.3);
+            }
+        }
+
+        .color-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .space-name {
+            font-size: 17px;
+            line-height: 1.1;
+            margin-top: 10px;
+            margin-bottom: 2px;
+        }
+
+        .space-price {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .level-badge {
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-piece {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+        }
+
+        .player-piece.active {
+            z-index: 200;
+            transform: scale(1.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .player-piece.in-jail {
+            opacity: 0.6;
+            border-color: #ef4444;
+        }
+
+        .dice-animation {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            animation: diceRoll 0.5s ease-in-out;
+            z-index: 1000;
+        }
+
+        @keyframes diceRoll {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(1); }
+            75% { transform: rotate(270deg) scale(1.2); }
+        }
+
+        .players-panel {
+            width: 360px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-card {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border-left: 5px solid;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .player-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .player-card.active {
+            box-shadow: 0 0 0 3px;
+            transform: translateX(5px);
+        }
+
+        .player-card.bankrupt {
+            opacity: 0.5;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .player-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .player-name:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .player-right {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .status-tag {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .bankrupt-tag {
+            background: #ef4444;
+            color: white;
+        }
+
+        .jail-tag {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .pass-tag {
+            background: #10b981;
+            color: white;
+        }
+
+        .player-stats {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: #666;
+        }
+
+        .properties-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .property-chip {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            animation: modalPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 400px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-btn-cancel {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .celebration {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: fall 3s linear;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10000;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip-row {
+            margin: 4px 0;
+        }
+
+        .cheat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 380px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .cheat-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .cheat-panel {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 380px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 320px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .cheat-panel.show {
+            display: block;
+        }
+
+        .cheat-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .cheat-dice-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .cheat-dice-btn {
+            width: 100%;
+            height: 45px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cheat-dice-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .cheat-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .cheat-label {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .cheat-select, .cheat-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .cheat-apply-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .cheat-apply-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .color-picker-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-picker-modal.show {
+            display: flex;
+        }
+
+        .color-picker-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-picker-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid transparent;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option:hover {
+            transform: scale(1.15);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-started .btn-add,
+        .game-started .btn-delete,
+        .game-started .avatar,
+        .game-started .player-name {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .space.clickable {
+            cursor: pointer;
+            border: 3px solid #667eea;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 主游戏区域 -->
+        <div class="main-area">
+            
+            <div class="board-wrapper">
+                
+                <div class="game-log-mini">
+                    <h4>📋 游戏日志</h4>
+                    <div id="logContent"></div>
+                </div>
+                <div class="board" id="gameBoard">
+                    
+                    <div class="board-center">
+                        <div class="board-title">大富翁</div>
+                        <p style="color: #999; font-size: 20px;">Monopoly</p>
+                    </div>
+                </div>
+
+                <div class="dice-control" id="diceControl" style="display: none;">
+                    <div class="current-player-box" id="currentPlayerBox" style="display: none;">
+                    <div class="player-badge" id="currentPlayerBadge"></div>
+                </div>
+                    <div class="dice-count-selector">
+                        <span style="font-weight: bold; color: #666; font-size: 16px;">骰子:</span>
+                        <button class="dice-count-btn active" onclick="selectDiceCount(1)">1</button>
+                        <button class="dice-count-btn" onclick="selectDiceCount(2)">2</button>
+                    </div>
+                    <button class="dice-btn" id="diceBtn" onclick="rollDice()">🎲 掷骰子</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧玩家面板 -->
+        <div class="players-panel" id="playersPanel">
+            <div class="panel-header">
+                <h2>👥 玩家</h2>
+                <div class="header-buttons">
+                    <button class="btn reset-btn" onclick="resetGame()">🔄</button>
+                    <button class="btn btn-add" onclick="addPlayer()" id="addBtn">+</button>
+                    <button class="btn btn-start" onclick="startGame()" id="startBtn">开始</button>
+                </div>
+            </div>
+            <div id="playersList"></div>
+        </div>
+    </div>
+
+    <!-- 颜色选择器 -->
+    <div class="color-picker-modal" id="colorPickerModal">
+        <div class="color-picker-content">
+            <div class="color-picker-title">选择颜色</div>
+            <div class="color-grid" id="colorGrid"></div>
+        </div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"></div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-text" id="modalText"></div>
+            <div class="modal-buttons" id="modalButtons"></div>
+        </div>
+    </div>
+
+    <!-- 万能骰子 -->
+    <button class="cheat-btn" onclick="toggleCheatPanel()"></button>
+    <div class="cheat-panel" id="cheatPanel">
+        <div class="cheat-title">🎲 万能骰子</div>
+        <div class="cheat-dice-grid">
+            <button class="cheat-dice-btn" onclick="cheatRoll(1)">1</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(2)">2</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(3)">3</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(4)">4</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(5)">5</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(6)">6</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(7)">7</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(8)">8</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(9)">9</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(10)">10</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(11)">11</button>
+            <button class="cheat-dice-btn" onclick="cheatRoll(12)">12</button>
+        </div>
+        
+        
+		<div class="cheat-section">
+            <div class="cheat-label">自选地块移动</div>
+            <button class="cheat-apply-btn" onclick="enableTeleportMode()">📍 选择地块</button>
+            
+            <div class="cheat-label">指定玩家操作</div>
+            <select class="cheat-select" id="cheatPlayerSelect"></select>
+            
+            <button class="cheat-apply-btn" onclick="eliminatePlayer()">❌ 淘汰玩家</button>
+            
+            <div class="cheat-label">调整金币</div>
+            <input type="number" class="cheat-input" id="cheatMoneyInput" placeholder="输入金额(正负)" />
+            <button class="cheat-apply-btn" onclick="applyCheatMoney()">💰 应用</button>
+            
+            <div class="cheat-label">通行证数量</div>
+            <input type="number" class="cheat-input" id="cheatPassInput" placeholder="增加数量" />
+            <button class="cheat-apply-btn" onclick="applyCheatPass()">🎫 增加通行证</button>
+            
+            <button class="cheat-apply-btn" onclick="releaseFromJail()">🔓 立即出狱</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const COLORS = [
+            '#4E6813','#B0A6DF','#74070E','#be3455',
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
+            '#E74C3C', '#3498DB', '#2ECC71', '#F39C12',
+            '#9B59B6', '#1ABC9C', '#E67E22', '#95A5A6'
+        ];
+
+        const COLOR_GROUPS = [
+            { name: '棕色', color: '#b74242', ids: [1, 2, 3] },
+            { name: '粉色', color: '#7045ff', ids: [6, 7, 8] },
+            { name: '浅蓝', color: '#0460d9', ids: [11, 12, 13] },
+            { name: '橙色', color: '#FFA500', ids: [16, 17, 18] },
+            { name: '红色', color: '#DC143C', ids: [21, 22, 23] },
+            { name: '黄色', color: '#FFD700', ids: [26, 27, 28] },
+            { name: '绿色', color: '#32CD32', ids: [31, 32, 33] },
+            { name: '深蓝', color: '#00008B', ids: [37, 38, 39] }
+        ];
+
+        const FACILITY_IDS = [5, 15, 25, 35];
+
+        const CHANCE_EVENTS = [
+            { type: 'money', amount: 1000, text: '银行分红，获得 ￥1000' },
+            { type: 'money', amount: -800, text: '缴纳罚款 ￥800' },
+            { type: 'money', amount: 2000, text: '中了彩票，获得 ￥2000' },
+            { type: 'money', amount: 1500, text: '投资收益，获得 ￥1500' },
+            { type: 'move', steps: 3, text: '前进 3 步' },
+            { type: 'move', steps: -2, text: '后退 2 步' },
+            { type: 'jail', text: '进入监狱！' },
+            { type: 'pass', text: '获得监狱通行证！' },
+            { type: 'repair', text: '对你的物业进行全面维修\n每个地块支付 ￥200' },
+            { type: 'chairman', text: '作为董事局主席\n向其他所有玩家支付 ￥500' },
+            { type: 'birthday', text: '今天是你的生日\n向其他每位玩家收取 ￥100' },
+            { type: 'nearestUtility', multiplier: 10, text: '直达最近的公共设施\n若有业主，支付骰子点数×10倍租金' },
+            { type: 'chooseTeleport', text: '选择一个地块传送' }
+        ];
+
+        const DESTINY_EVENTS = [
+            { type: 'money', amount: -500, text: '房屋维修，支付 ￥500' },
+            { type: 'money', amount: -1000, text: '慈善捐款，支付 ￥1000' },
+            { type: 'money', amount: 2500, text: '遗产继承，获得 ￥2500' },
+            { type: 'move', steps: 5, text: '前进 5 步' },
+            { type: 'teleport', target: 0, text: '传送到起点' },
+            { type: 'teleport', target: 20, text: '传送到基金会' },
+            { type: 'nearestUtility', multiplier: 2, text: '直达最近的公共设施\n若有业主，支付两倍租金' },
+            { type: 'pass', text: '获得监狱通行证！' }
+        ];
+
+        let players = [];
+        let board = [];
+        let nextId = 0;
+        let currentIdx = 0;
+        let gameStarted = false;
+        let logs = [];
+        let diceCount = 1;
+        let tooltip = null;
+        let teleportMode = false;
+        let upgradeMode = false;
+        let finalCircleShown = false;
+
+        function init() {
+            loadPlayerData();
+            initBoard();
+            renderPlayers();
+            addLog('欢迎！请添加玩家并开始游戏');
+            setupTooltips();
+            updateCheatPlayerList();
+        }
+
+        function initBoard() {
+            board = [
+                { id: 0, type: 'start', name: '起点', bonus: 2000 },
+                { id: 1, type: 'property', name: '西宁', price: 100, level: 0, owner: null, rent: [50, 110, 220, 500], group: 0 },
+                { id: 2, type: 'property', name: '兰州', price: 120, level: 0, owner: null, rent: [60, 130, 260, 500], group: 0 },
+                { id: 3, type: 'property', name: '银川', price: 140, level: 0, owner: null, rent: [70, 150, 300, 500], group: 0 },
+                { id: 4, type: 'chance', name: '机会' },
+                { id: 5, type: 'facility', name: '🚂火车', price: 200, owner: null, rent: 50 },
+                { id: 6, type: 'property', name: '昆明', price: 150, level: 0, owner: null, rent: [80, 170, 340, 600], group: 1 },
+                { id: 7, type: 'property', name: '武汉', price: 170, level: 0, owner: null, rent: [90, 190, 380, 600], group: 1 },
+                { id: 8, type: 'property', name: '合肥', price: 190, level: 0, owner: null, rent: [100, 210, 420, 600], group: 1 },
+                { id: 9, type: 'destiny', name: '命运' },
+                { id: 10, type: 'jail', name: '进监狱' },
+                { id: 11, type: 'property', name: '哈尔滨', price: 200, level: 0, owner: null, rent: [100, 210, 420, 800], group: 2 },
+                { id: 12, type: 'property', name: '长春', price: 220, level: 0, owner: null, rent: [110, 230, 460, 800], group: 2 },
+                { id: 13, type: 'property', name: '沈阳', price: 240, level: 0, owner: null, rent: [120, 250, 500, 800], group: 2 },
+                { id: 14, type: 'chance', name: '机会' },
+                { id: 15, type: 'facility', name: '✈️飞机', price: 200, owner: null, rent: 50 },
+                { id: 16, type: 'property', name: '南宁', price: 250, level: 0, owner: null, rent: [130, 270, 540, 900], group: 3 },
+                { id: 17, type: 'property', name: '贵阳', price: 270, level: 0, owner: null, rent: [140, 290, 580, 900], group: 3 },
+                { id: 18, type: 'property', name: '成都', price: 290, level: 0, owner: null, rent: [150, 310, 620, 900], group: 3 },
+                { id: 19, type: 'destiny', name: '命运' },
+                { id: 20, type: 'foundation', name: '基金会' },
+                { id: 21, type: 'property', name: '西安', price: 300, level: 0, owner: null, rent: [150, 310, 620, 1100], group: 4 },
+                { id: 22, type: 'property', name: '郑州', price: 320, level: 0, owner: null, rent: [160, 330, 660, 1100], group: 4 },
+                { id: 23, type: 'property', name: '济南', price: 340, level: 0, owner: null, rent: [170, 350, 680, 1100], group: 4 },
+                { id: 24, type: 'chance', name: '机会' },
+                { id: 25, type: 'facility', name: '🚢轮船', price: 200, owner: null, rent: 50 },
+                { id: 26, type: 'property', name: '石家庄', price: 350, level: 0, owner: null, rent: [170, 370, 640, 1200], group: 5 },
+                { id: 27, type: 'property', name: '天津', price: 370, level: 0, owner: null, rent: [180, 390, 680, 1200], group: 5 },
+                { id: 28, type: 'property', name: '北京', price: 390, level: 0, owner: null, rent: [190, 410, 720, 1200], group: 5 },
+                { id: 29, type: 'destiny', name: '命运' },
+                { id: 30, type: 'prison', name: '监狱' },
+                { id: 31, type: 'property', name: '广州', price: 400, level: 0, owner: null, rent: [200, 410, 720, 1400], group: 6 },
+                { id: 32, type: 'property', name: '福州', price: 420, level: 0, owner: null, rent: [210, 430, 760, 1400], group: 6 },
+                { id: 33, type: 'property', name: '长沙', price: 440, level: 0, owner: null, rent: [220, 450, 780, 1400], group: 6 },
+                { id: 34, type: 'chance', name: '机会' },
+                { id: 35, type: 'facility', name: '发电厂', price: 200, owner: null, rent: 50 },
+                { id: 36, type: 'destiny', name: '命运' },
+                { id: 37, type: 'property', name: '杭州', price: 450, level: 0, owner: null, rent: [230, 460, 740, 1500], group: 7 },
+                { id: 38, type: 'property', name: '南京', price: 470, level: 0, owner: null, rent: [240, 490, 780, 1500], group: 7 },
+                { id: 39, type: 'property', name: '上海', price: 490, level: 0, owner: null, rent: [250, 510, 820, 1500], group: 7 }
+            ];
+        }
+
+        function savePlayerData() {
+            const data = players.map(p => ({ id: p.id, name: p.name, color: p.color }));
+            localStorage.setItem('monopoly_players', JSON.stringify(data));
+        }
+
+        function loadPlayerData() {
+            const saved = localStorage.getItem('monopoly_players');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    players = data.map(p => ({
+                        ...p,
+                        position: 0,
+                        money: 10000,
+                        properties: [],
+                        active: true,
+                        inJail: false,
+                        jailTurns: 0,
+                        jailPass: 0
+                    }));
+                    nextId = Math.max(...players.map(p => p.id)) + 1;
+                } catch (e) {
+                    initDefaultPlayers();
+                }
+            } else {
+                initDefaultPlayers();
+            }
+        }
+
+        function initDefaultPlayers() {
+            players = [
+                { id: 0, name: '玩家1', color: COLORS[0], position: 0, money: 5000, properties: [], active: true, inJail: false, jailTurns: 0, jailPass: 0 },
+                { id: 1, name: '玩家2', color: COLORS[1], position: 0, money: 5000, properties: [], active: true, inJail: false, jailTurns: 0, jailPass: 0 }
+            ];
+            nextId = 2;
+        }
+
+        function addPlayer() {
+            if (players.length >= 8) {
+                showAlert('最多8名玩家！');
+                return;
+            }
+            players.push({
+                id: nextId++,
+                name: `玩家${players.length + 1}`,
+                color: COLORS[players.length % COLORS.length],
+                position: 0,
+                money: 10000,
+                properties: [],
+                active: true,
+                inJail: false,
+                jailTurns: 0,
+                jailPass: 0
+            });
+            renderPlayers();
+            updateCheatPlayerList();
+        }
+
+        function removePlayer(id) {
+            if (players.length <= 2) {
+                showAlert('至少需要2名玩家！');
+                return;
+            }
+            players = players.filter(p => p.id !== id);
+            renderPlayers();
+            savePlayerData();
+            updateCheatPlayerList();
+        }
+
+        function editName(id) {
+            const p = players.find(p => p.id === id);
+            showPrompt('输入新名称:', p.name, (newName) => {
+                if (newName && newName.trim()) {
+                    p.name = newName.trim();
+                    renderPlayers();
+                    if (gameStarted) updateCurrent();
+                    savePlayerData();
+                }
+            });
+        }
+
+        function showColorPicker(id) {
+            const p = players.find(p => p.id === id);
+            const grid = document.getElementById('colorGrid');
+            grid.innerHTML = '';
+            COLORS.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'color-option' + (c === p.color ? ' selected' : '');
+                div.style.backgroundColor = c;
+                div.onclick = () => selectColor(id, c);
+                grid.appendChild(div);
+            });
+            document.getElementById('colorPickerModal').classList.add('show');
+        }
+
+        function selectColor(id, color) {
+            const p = players.find(p => p.id === id);
+            p.color = color;
+            if (gameStarted) {
+                const piece = document.getElementById(`piece-${id}`);
+                if (piece) piece.style.backgroundColor = color;
+                board.forEach((s, i) => {
+                    if (s.owner === players.findIndex(p => p.id === id)) {
+                        const el = document.querySelector(`[data-id="${i}"]`);
+                        if (el && s.type === 'property') {
+                            el.style.backgroundColor = color + '40';
+                        }
+                    }
+                });
+                updateFullSetEffects();
+            }
+            document.getElementById('colorPickerModal').classList.remove('show');
+            renderPlayers();
+            savePlayerData();
+        }
+
+        function selectDiceCount(count) {
+            diceCount = count;
+            document.querySelectorAll('.dice-count-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === count - 1);
+            });
+        }
+
+        function startGame() {
+            if (players.length < 2) {
+                showAlert('至少需要2名玩家！');
+                return;
+            }
+            gameStarted = true;
+            document.getElementById('playersPanel').classList.add('game-started');
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('currentPlayerBox').style.display = 'block';
+            document.getElementById('diceControl').style.display = 'flex';
+            addLog('🎮 游戏开始！');
+            renderBoard();
+            updateCurrent();
+            updateCheatPlayerList();
+        }
+
+        function resetGame() {
+            showConfirm('确定要重置游戏吗？', () => {
+                location.reload();
+            });
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('gameBoard');
+            const centerEl = boardEl.querySelector('.board-center');
+            boardEl.innerHTML = '';
+            boardEl.appendChild(centerEl);
+            
+            
+            const positions = [
+                ...Array.from({length: 11}, (_, i) => ({r: 11, c: 11 - i})),
+                ...Array.from({length: 10}, (_, i) => ({r: 10 - i, c: 1})),
+                ...Array.from({length: 10}, (_, i) => ({r: 1, c: 2 + i})),
+                ...Array.from({length: 9}, (_, i) => ({r: 2 + i, c: 11}))
+            ];
+
+            board.forEach((space, idx) => {
+                const div = document.createElement('div');
+                div.className = `space ${space.type}`;
+                if ([0, 10, 20, 30].includes(idx)) div.classList.add('corner');
+                div.dataset.id = idx;
+                
+                const pos = positions[idx];
+                div.style.gridRow = pos.r;
+                div.style.gridColumn = pos.c;
+                
+                let html = '';
+                
+                if (space.type === 'property') {
+                    const group = COLOR_GROUPS.find(g => g.ids.includes(idx));
+                    if (group) {
+                        html += `<div class="color-bar" style="background: ${group.color};"></div>`;
+                    }
+                    
+                    if (space.owner !== null) {
+                        const ownerColor = players[space.owner].color;
+                        div.style.backgroundColor = ownerColor + '40';
+                        div.style.borderColor = ownerColor;
+                        div.style.borderWidth = '3px';
+                    }
+                }
+                
+                html += `<div class="space-name">${space.name}</div>`;
+                
+                if (space.price) {
+                    html += `<div class="space-price">￥${space.price}</div>`;
+                }
+                
+                if (space.type === 'property' && space.level > 0) {
+                    html += `<div class="level-badge">Lv.${space.level}</div>`;
+                }
+                
+                div.innerHTML = html;
+                
+                if (teleportMode || upgradeMode) {
+                    if (space.type === 'property') {
+                        if (teleportMode || (upgradeMode && space.owner === currentIdx && space.level < 3)) {
+                            div.classList.add('clickable');
+                            div.onclick = () => {
+                                if (teleportMode) teleportToSpace(idx);
+                                if (upgradeMode) upgradeFromFoundation(idx);
+                            };
+                        }
+                    }
+                }
+                
+                boardEl.appendChild(div);
+            });
+
+            players.forEach(p => {
+                const piece = document.createElement('div');
+                piece.className = 'player-piece';
+                piece.id = `piece-${p.id}`;
+                piece.style.backgroundColor = p.color;
+                piece.textContent = players.findIndex(pl => pl.id === p.id) + 1;
+                if (p.inJail) piece.classList.add('in-jail');
+                boardEl.appendChild(piece);
+                updatePiecePos(p.id, p.position);
+            });
+
+            updateFullSetEffects();
+        }
+
+        function updateFullSetEffects() {
+            COLOR_GROUPS.forEach(group => {
+                const allOwned = group.ids.every(id => {
+                    const space = board[id];
+                    return space.owner !== null && space.owner !== undefined;
+                });
+                
+                if (allOwned) {
+                    const owner = board[group.ids[0]].owner;
+                    const sameOwner = group.ids.every(id => board[id].owner === owner);
+                    
+                    if (sameOwner) {
+                        group.ids.forEach(id => {
+                            const el = document.querySelector(`[data-id="${id}"]`);
+                            if (el) {
+                                el.classList.add('full-set');
+                                el.style.setProperty('color', group.color);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function setupTooltips() {
+            document.addEventListener('mousemove', (e) => {
+                const space = e.target.closest('.space');
+                if (space && gameStarted) {
+                    const idx = parseInt(space.dataset.id);
+                    const data = board[idx];
+                    
+                    if (data.type === 'property') {
+                        if (!tooltip) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip';
+                            document.body.appendChild(tooltip);
+                        }
+                        
+                        const upgradePrice = Math.floor(data.price * 0.4);
+                        
+                        let html = `<div class="tooltip-row"><strong>${data.name}</strong></div>`;
+                        html += `<div class="tooltip-row">💰 购买: ￥${data.price}</div>`;
+                        html += `<div class="tooltip-row">⬆️ 升级: ￥${upgradePrice}</div>`;
+                        html += `<div class="tooltip-row">租金 Lv.0-3:</div>`;
+                        data.rent.forEach((r, i) => {
+                            html += `<div class="tooltip-row">  Lv.${i}: ￥${r}</div>`;
+                        });
+                        
+                        if (hasFullSet(data.owner, data.group)) {
+                            html += `<div class="tooltip-row" style="color: #f59e0b;">⭐ 集齐翻倍!</div>`;
+                        }
+                        
+                        tooltip.innerHTML = html;
+                        tooltip.style.left = (e.pageX + 15) + 'px';
+                        tooltip.style.top = (e.pageY + 15) + 'px';
+                        tooltip.style.display = 'block';
+                    } else if (data.type === 'facility') {
+                        if (!tooltip) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip';
+                            document.body.appendChild(tooltip);
+                        }
+                        
+                        let html = `<div class="tooltip-row"><strong>${data.name}</strong></div>`;
+                        html += `<div class="tooltip-row">💰 购买: ￥${data.price}</div>`;
+                        html += `<div class="tooltip-row">租金: ￥${data.rent}</div>`;
+                        
+                        if (hasFacilitySet(data.owner)) {
+                            html += `<div class="tooltip-row" style="color: #f59e0b;">⭐ 集齐翻倍!</div>`;
+                        }
+                        
+                        tooltip.innerHTML = html;
+                        tooltip.style.left = (e.pageX + 15) + 'px';
+                        tooltip.style.top = (e.pageY + 15) + 'px';
+                        tooltip.style.display = 'block';
+                    } else {
+                        hideTooltip();
+                    }
+                } else {
+                    hideTooltip();
+                }
+            });
+        }
+
+        function hideTooltip() {
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        function updatePiecePos(id, pos) {
+            const piece = document.getElementById(`piece-${id}`);
+            if (!piece) return;
+            
+            const spaceEl = document.querySelector(`[data-id="${pos}"]`);
+            if (!spaceEl) return;
+            
+            const rect = spaceEl.getBoundingClientRect();
+            const boardRect = document.getElementById('gameBoard').getBoundingClientRect();
+            
+            const playersHere = players.filter(p => p.position === pos && p.active);
+            const myIndex = playersHere.findIndex(p => p.id === id);
+            
+            const offsetX = (myIndex % 3) * 26 - 26;
+            const offsetY = Math.floor(myIndex / 3) * 26 - 13;
+            
+            piece.style.left = (rect.left - boardRect.left + rect.width / 2 + offsetX) + 'px';
+            piece.style.top = (rect.top - boardRect.top + rect.height / 2 + offsetY) + 'px';
+        }
+
+        function updateCurrent() {
+            const p = players[currentIdx];
+            const badge = document.getElementById('currentPlayerBadge');
+            let status = '';
+            if (p.inJail) status = ' 🔒监狱';
+            if (p.jailPass > 0) status += ` 🎫×${p.jailPass}`;
+            badge.innerHTML = `<strong style="font-size: 16px;">${p.name}${status}</strong><span style="color: #666;">💰 ￥${p.money}</span>`;
+            badge.style.backgroundColor = p.color + '20';
+            badge.style.borderColor = p.color;
+
+            document.querySelectorAll('.player-piece').forEach(el => {
+                el.classList.remove('active');
+            });
+            const piece = document.getElementById(`piece-${p.id}`);
+            if (piece) piece.classList.add('active');
+        }
+
+        function renderPlayers() {
+            const list = document.getElementById('playersList');
+            list.innerHTML = '';
+
+            let sortedPlayers = [...players];
+            if (gameStarted) {
+                sortedPlayers.sort((a, b) => b.money - a.money);
+            }
+
+            sortedPlayers.forEach((p) => {
+                const i = players.findIndex(pl => pl.id === p.id);
+                const div = document.createElement('div');
+                div.className = `player-card ${gameStarted && currentIdx === i ? 'active' : ''} ${!p.active ? 'bankrupt' : ''}`;
+                div.style.backgroundColor = p.color + '15';
+                div.style.borderColor = p.color;
+                if (gameStarted && currentIdx === i) {
+                    div.style.boxShadow = `0 0 0 3px ${p.color}40`;
+                }
+
+                let propsHtml = '';
+                if (p.properties.length > 0) {
+                    propsHtml = '<div class="properties-grid">';
+                    p.properties.forEach(propId => {
+                        const prop = board[propId];
+                        if (prop.type === 'property') {
+                            propsHtml += `<div class="property-chip">${prop.name}${prop.level > 0 ? ' Lv.' + prop.level : ''}</div>`;
+                        } else {
+                            propsHtml += `<div class="property-chip">${prop.name}</div>`;
+                        }
+                    });
+                    propsHtml += '</div>';
+                }
+
+                let statusTag = '';
+                if (!p.active) {
+                    statusTag = '<div class="status-tag bankrupt-tag">破产</div>';
+                } else if (p.inJail) {
+                    statusTag = `<div class="status-tag jail-tag">监狱 ${p.jailTurns}/3</div>`;
+                } else if (p.jailPass > 0) {
+                    statusTag = `<div class="status-tag pass-tag">🎫×${p.jailPass}</div>`;
+                }
+
+                div.innerHTML = `
+                    <div class="player-header">
+                        <div class="player-left">
+                            <div class="avatar" style="background-color: ${p.color};" onclick="showColorPicker(${p.id})">${players.findIndex(pl => pl.id === p.id) + 1}</div>
+                            <div class="player-name" onclick="editName(${p.id})">${p.name}</div>
+                        </div>
+                        <div class="player-right">
+                            ${statusTag}
+                            ${!gameStarted ? `<button class="btn-delete" onclick="removePlayer(${p.id})">删除</button>` : ''}
+                        </div>
+                    </div>
+                    ${gameStarted ? `
+                    <div class="player-stats">
+                        <div class="stat-item">💰 <strong>￥${p.money}</strong></div>
+                        <div class="stat-item">🏠 ${p.properties.length} 处地产</div>
+                    </div>
+                    ${propsHtml}
+                    ` : ''}
+                `;
+
+                list.appendChild(div);
+            });
+        }
+
+        function addLog(msg) {
+            logs.push(msg);
+            if (logs.length > 30) logs.shift();
+            const el = document.getElementById('logContent');
+            if (el) {
+                el.innerHTML = logs.slice(-20).map(l => `<div class="log-item-mini">${l}</div>`).join('');
+                el.scrollTop = el.scrollHeight;
+            }
+        }
+
+        function showDiceAnimation(values, callback) {
+            const boardCenter = document.querySelector('.board-center');
+            const diceEls = [];
+            
+            values.forEach((val, idx) => {
+                const diceEl = document.createElement('div');
+                diceEl.className = 'dice-animation';
+                diceEl.textContent = '🎲';
+                diceEl.style.left = `calc(50% - ${40 + idx * 90}px)`;
+                diceEl.style.top = 'calc(50% - 40px)';
+                boardCenter.appendChild(diceEl);
+                diceEls.push(diceEl);
+            });
+            
+            setTimeout(() => {
+                diceEls.forEach((el, idx) => {
+                    el.textContent = values[idx];
+                });
+            }, 500);
+            
+            setTimeout(() => {
+                diceEls.forEach(el => el.remove());
+                if (callback) callback();
+            }, 1500);
+        }
+
+        function rollDice() {
+            if (!gameStarted) {
+                showAlert('请先开始游戏！');
+                return;
+            }
+
+            const p = players[currentIdx];
+            if (!p.active) {
+                nextPlayer();
+                return;
+            }
+
+            if (p.inJail) {
+                if (p.jailPass > 0) {
+                    showConfirm('使用监狱通行证出狱？', () => {
+                        p.jailPass--;
+                        p.inJail = false;
+                        p.jailTurns = 0;
+                        const piece = document.getElementById(`piece-${p.id}`);
+                        if (piece) piece.classList.remove('in-jail');
+                        addLog(`🎫 ${p.name} 使用通行证出狱`);
+                        showEventModal('🎫', '出狱成功', `${p.name} 使用通行证出狱！`, () => {
+                            renderPlayers();
+                            updateCurrent();
+                        });
+                    }, () => {
+                        rollInJail(p);
+                    });
+                } else {
+                    rollInJail(p);
+                }
+                return;
+            }
+
+            document.getElementById('diceBtn').disabled = true;
+            const dices = [];
+            for (let i = 0; i < diceCount; i++) {
+                dices.push(Math.floor(Math.random() * 6) + 1);
+            }
+            const total = dices.reduce((a, b) => a + b, 0);
+            
+            addLog(`🎲 ${p.name} 掷出了 ${dices.join('+')}=${total} 点`);
+            
+            showDiceAnimation(dices, () => {
+                const newPos = (p.position + total) % board.length;
+                movePlayer(currentIdx, newPos);
+            });
+        }
+
+        function rollInJail(p) {
+            const dice = Math.floor(Math.random() * 6) + 1;
+            showDiceAnimation([dice], () => {
+                if (dice === 6) {
+                    p.inJail = false;
+                    p.jailTurns = 0;
+                    const piece = document.getElementById(`piece-${p.id}`);
+                    if (piece) piece.classList.remove('in-jail');
+                    addLog(`🎉 ${p.name} 投出6点，出狱了！`);
+                    showEventModal('🎉', '出狱成功', `${p.name} 投出6点，成功出狱！\n请再投一次骰子`, () => {
+                        renderPlayers();
+                        updateCurrent();
+                        document.getElementById('diceBtn').disabled = false;
+                    });
+                } else {
+                    p.jailTurns++;
+                    addLog(`🔒 ${p.name} 投出${dice}点，继续关押 (${p.jailTurns}/3)`);
+                    if (p.jailTurns >= 3) {
+                        p.inJail = false;
+                        p.jailTurns = 0;
+                        const piece = document.getElementById(`piece-${p.id}`);
+                        if (piece) piece.classList.remove('in-jail');
+                        addLog(`⏰ ${p.name} 刑满释放！`);
+                    }
+                    showEventModal('🔒', '出狱失败', `投出${dice}点，需要6点才能出狱\n已关押 ${p.jailTurns}/3 回合${p.jailTurns >= 3 ? '\n刑满释放！' : ''}`, () => {
+                        renderPlayers();
+                        updateCurrent();
+                        nextPlayer();
+                    });
+                }
+            });
+        }
+
+        function toggleCheatPanel() {
+            const panel = document.getElementById('cheatPanel');
+            panel.classList.toggle('show');
+        }
+
+        function updateCheatPlayerList() {
+            const select = document.getElementById('cheatPlayerSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">选择玩家</option>';
+            players.forEach((p, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = p.name;
+                select.appendChild(option);
+            });
+        }
+
+        function cheatRoll(value) {
+            if (!gameStarted) return;
+            const p = players[currentIdx];
+            if (!p.active) return;
+
+            if (p.inJail) {
+                showDiceAnimation([value], () => {
+                    if (value === 6) {
+                        p.inJail = false;
+                        p.jailTurns = 0;
+                        const piece = document.getElementById(`piece-${p.id}`);
+                        if (piece) piece.classList.remove('in-jail');
+                        addLog(`🎉 ${p.name} 投出6点，出狱了！`);
+                        showEventModal('🎉', '出狱成功', `${p.name} 投出6点，成功出狱！`, () => {
+                            renderPlayers();
+                            updateCurrent();
+                            document.getElementById('diceBtn').disabled = false;
+                        });
+                    } else {
+                        p.jailTurns++;
+                        addLog(`🔒 ${p.name} 投出${value}点，继续关押 (${p.jailTurns}/3)`);
+                        if (p.jailTurns >= 3) {
+                            p.inJail = false;
+                            p.jailTurns = 0;
+                            const piece = document.getElementById(`piece-${p.id}`);
+                            if (piece) piece.classList.remove('in-jail');
+                            addLog(`⏰ ${p.name} 刑满释放！`);
+                        }
+                        showEventModal('🔒', '出狱失败', `投出${value}点\n已关押 ${p.jailTurns}/3 回合`, () => {
+                            renderPlayers();
+                            updateCurrent();
+                            nextPlayer();
+                        });
+                    }
+                });
+                document.getElementById('cheatPanel').classList.remove('show');
+                return;
+            }
+
+            document.getElementById('diceBtn').disabled = true;
+            addLog(`🎲 ${p.name} 掷出了 ${value} 点`);
+            
+            showDiceAnimation([value], () => {
+                const newPos = (p.position + value) % board.length;
+                movePlayer(currentIdx, newPos);
+            });
+            
+            document.getElementById('cheatPanel').classList.remove('show');
+        }
+
+        function enableTeleportMode() {
+            teleportMode = true;
+            document.getElementById('cheatPanel').classList.remove('show');
+            showEventModal('📍', '选择地块', '请点击地图上的任意地产传送', () => {
+                renderBoard();
+            });
+        }
+
+        function eliminatePlayer() {
+            const selectEl = document.getElementById('cheatPlayerSelect');
+            const playerIdx = parseInt(selectEl.value);
+            
+            if (isNaN(playerIdx) || playerIdx < 0 || playerIdx >= players.length) {
+                showAlert('请选择玩家');
+                return;
+            }
+            
+            showConfirm(`确定淘汰 ${players[playerIdx].name}？`, () => {
+                handleBankruptcy(playerIdx);
+                document.getElementById('cheatPanel').classList.remove('show');
+            });
+        }
+
+        function applyCheatMoney() {
+            const selectEl = document.getElementById('cheatPlayerSelect');
+            const inputEl = document.getElementById('cheatMoneyInput');
+            
+            const playerIdx = parseInt(selectEl.value);
+            const amount = parseInt(inputEl.value);
+            
+            if (isNaN(playerIdx) || playerIdx < 0 || playerIdx >= players.length) {
+                showAlert('请选择玩家');
+                return;
+            }
+            
+            if (isNaN(amount)) {
+                showAlert('请输入金额');
+                return;
+            }
+            
+            players[playerIdx].money += amount;
+            addLog(`💰 ${players[playerIdx].name} ${amount > 0 ? '获得' : '失去'} ￥${Math.abs(amount)}`);
+            renderPlayers();
+            if (currentIdx === playerIdx) updateCurrent();
+            
+            inputEl.value = '';
+            document.getElementById('cheatPanel').classList.remove('show');
+        }
+
+        function applyCheatPass() {
+            const selectEl = document.getElementById('cheatPlayerSelect');
+            const inputEl = document.getElementById('cheatPassInput');
+            
+            const playerIdx = parseInt(selectEl.value);
+            const amount = parseInt(inputEl.value);
+            
+            if (isNaN(playerIdx) || playerIdx < 0 || playerIdx >= players.length) {
+                showAlert('请选择玩家');
+                return;
+            }
+            
+            if (isNaN(amount) || amount < 1) {
+                showAlert('请输入数量');
+                return;
+            }
+            
+            players[playerIdx].jailPass += amount;
+            addLog(`🎫 ${players[playerIdx].name} 获得 ${amount} 张通行证`);
+            renderPlayers();
+            if (currentIdx === playerIdx) updateCurrent();
+            
+            inputEl.value = '';
+            document.getElementById('cheatPanel').classList.remove('show');
+        }
+
+        function releaseFromJail() {
+            const selectEl = document.getElementById('cheatPlayerSelect');
+            const playerIdx = parseInt(selectEl.value);
+            
+            if (isNaN(playerIdx) || playerIdx < 0 || playerIdx >= players.length) {
+                showAlert('请选择玩家');
+                return;
+            }
+            
+            const p = players[playerIdx];
+            if (!p.inJail) {
+                showAlert('该玩家不在监狱');
+                return;
+            }
+            
+            p.inJail = false;
+            p.jailTurns = 0;
+            const piece = document.getElementById(`piece-${p.id}`);
+            if (piece) piece.classList.remove('in-jail');
+            addLog(`🔓 ${p.name} 被释放出狱`);
+            renderPlayers();
+            if (currentIdx === playerIdx) updateCurrent();
+            
+            document.getElementById('cheatPanel').classList.remove('show');
+        }
+
+        function movePlayer(idx, newPos) {
+            const p = players[idx];
+            const oldPos = p.position;
+            p.position = newPos;
+            
+            if (newPos === 0 || (newPos < oldPos && newPos !== 0)) {
+                p.money += board[0].bonus;
+                addLog(`✨ ${p.name} ${newPos === 0 ? '到达' : '经过'}起点，获得 ￥${board[0].bonus}`);
+            }
+            
+            updatePiecePos(p.id, newPos);
+            
+            setTimeout(() => {
+                handleLanding(idx, newPos);
+            }, 600);
+        }
+
+        function handleLanding(idx, pos) {
+            const space = board[pos];
+            const p = players[idx];
+            
+            addLog(`📍 ${p.name} 到达 ${space.name}`);
+            
+            switch (space.type) {
+                case 'property':
+                    handleProperty(idx, pos);
+                    break;
+                case 'facility':
+                    handleFacility(idx, pos);
+                    break;
+                case 'chance':
+                    triggerEvent(idx, 'chance');
+                    break;
+                case 'destiny':
+                    triggerEvent(idx, 'destiny');
+                    break;
+                case 'foundation':
+                    handleFoundation(idx);
+                    break;
+                case 'jail':
+                    sendToJail(idx);
+                    break;
+                case 'prison':
+                    addLog(`😌 ${p.name} 只是路过监狱`);
+                    showEventModal('😌', '路过监狱', `${p.name} 只是路过监狱`, () => {
+                        nextPlayer();
+                    });
+                    break;
+                default:
+                    nextPlayer();
+            }
+        }
+
+        function handleFoundation(idx) {
+            const p = players[idx];
+            const myProperties = p.properties.filter(propId => {
+                const prop = board[propId];
+                return prop.type === 'property' && prop.level < 3;
+            });
+
+            if (myProperties.length > 0) {
+                showModal('🏦', '基金会', '选择一项服务', [
+                    { type: 'modal-btn-confirm', text: '升级地产', callback: () => {
+                        upgradeMode = true;
+                        showEventModal('⬆️', '选择地产', '点击你要升级的地产', () => {
+                            renderBoard();
+                        });
+                    }},
+                    { type: 'modal-btn-confirm', text: '购买通行证 (￥500)', callback: () => {
+                        if (p.money >= 500) {
+                            p.money -= 500;
+                            p.jailPass++;
+                            addLog(`🎫 ${p.name} 购买了监狱通行证`);
+                            renderPlayers();
+                            updateCurrent();
+                            nextPlayer();
+                        } else {
+                            showAlert('资金不足');
+                        }
+                    }},
+                    { type: 'modal-btn-cancel', text: '取消', callback: () => {
+                        nextPlayer();
+                    }}
+                ]);
+            } else {
+                showModal('🏦', '基金会', '你没有可升级的地产', [
+                    { type: 'modal-btn-confirm', text: '购买通行证 (￥500)', callback: () => {
+                        if (p.money >= 500) {
+                            p.money -= 500;
+                            p.jailPass++;
+                            addLog(`🎫 ${p.name} 购买了监狱通行证`);
+                            renderPlayers();
+                            updateCurrent();
+                            nextPlayer();
+                        } else {
+                            showAlert('资金不足');
+                        }
+                    }},
+                    { type: 'modal-btn-cancel', text: '取消', callback: () => {
+                        nextPlayer();
+                    }}
+                ]);
+            }
+        }
+
+        function upgradeFromFoundation(propId) {
+            upgradeMode = false;
+            const prop = board[propId];
+            const p = players[currentIdx];
+            const upgradePrice = Math.floor(prop.price * 0.4);
+            
+            if (p.money >= upgradePrice) {
+                p.money -= upgradePrice;
+                prop.level++;
+                addLog(`⬆️ ${p.name} 升级了 ${prop.name} 到 Lv.${prop.level}`);
+                renderPlayers();
+                updateCurrent();
+                renderBoard();
+                nextPlayer();
+            } else {
+                showAlert('资金不足');
+                renderBoard();
+            }
+        }
+
+        function sendToJail(idx) {
+            const p = players[idx];
+            
+            if (p.jailPass > 0) {
+                showConfirm('使用监狱通行证避免入狱？', () => {
+                    p.jailPass--;
+                    addLog(`🎫 ${p.name} 使用通行证避免入狱`);
+                    showEventModal('🎫', '通行证', `${p.name} 使用通行证避免入狱！`, () => {
+                        renderPlayers();
+                        updateCurrent();
+                        nextPlayer();
+                    });
+                }, () => {
+                    goToJail(idx);
+                });
+            } else {
+                goToJail(idx);
+            }
+        }
+
+        function goToJail(idx) {
+            const p = players[idx];
+            p.inJail = true;
+            p.jailTurns = 0;
+            p.position = 30;
+            updatePiecePos(p.id, 30);
+            const piece = document.getElementById(`piece-${p.id}`);
+            if (piece) piece.classList.add('in-jail');
+            addLog(`🚔 ${p.name} 进入监狱`);
+            showEventModal('🚔', '进入监狱', '你被关进监狱了！\n需要投出6点才能出狱', () => {
+                renderPlayers();
+                updateCurrent();
+                nextPlayer();
+            });
+        }
+
+        function handleProperty(idx, pos) {
+            const prop = board[pos];
+            const p = players[idx];
+            
+            if (prop.owner === null) {
+                if (p.money >= prop.price) {
+                    showConfirm(`购买 ${prop.name}\n价格: ￥${prop.price}`, () => {
+                        buyProperty(idx, pos);
+                    }, () => {
+                        nextPlayer();
+                    });
+                } else {
+                    addLog(`❌ ${p.name} 资金不足`);
+                    showEventModal('❌', '资金不足', `无法购买 ${prop.name}\n需要 ￥${prop.price}`, () => {
+                        nextPlayer();
+                    });
+                }
+            } else if (prop.owner === idx) {
+                const upgradePrice = Math.floor(prop.price * 0.4);
+                if (prop.level < 3 && p.money >= upgradePrice) {
+                    showConfirm(`升级 ${prop.name}\n升至 Lv.${prop.level + 1}\n价格: ￥${upgradePrice}`, () => {
+                        upgradeProperty(idx, pos);
+                    }, () => {
+                        nextPlayer();
+                    });
+                } else {
+                    addLog(`🏠 ${p.name} 到达自己的地盘`);
+                    showEventModal('🏠', '自己的地盘', `这是 ${p.name} 的地产`, () => {
+                        nextPlayer();
+                    });
+                }
+            } else {
+                const owner = players[prop.owner];
+                if (owner.inJail) {
+                    addLog(`🔒 地主 ${owner.name} 在监狱，免租`);
+                    showEventModal('🔒', '地主在监狱', `${owner.name} 在监狱中，免收租金`, () => {
+                        nextPlayer();
+                    });
+                } else {
+                    payRent(idx, pos);
+                }
+            }
+        }
+
+        function handleFacility(idx, pos) {
+            const facility = board[pos];
+            const p = players[idx];
+            
+            if (facility.owner === null) {
+                if (p.money >= facility.price) {
+                    showConfirm(`购买 ${facility.name}\n价格: ￥${facility.price}`, () => {
+                        buyFacility(idx, pos);
+                    }, () => {
+                        nextPlayer();
+                    });
+                } else {
+                    addLog(`❌ ${p.name} 资金不足`);
+                    showEventModal('❌', '资金不足', `无法购买 ${facility.name}`, () => {
+                        nextPlayer();
+                    });
+                }
+            } else if (facility.owner === idx) {
+                if (pos === 35) {
+                    const myProperties = p.properties.filter(propId => {
+                        const prop = board[propId];
+                        return prop.type === 'property' && prop.level < 3;
+                    });
+                    if (myProperties.length > 0) {
+                        showModal('⚡', '发电厂特权', '选择升级一块地产或取消', [
+                            { type: 'modal-btn-confirm', text: '升级地产', callback: () => {
+                                upgradeMode = true;
+                                showEventModal('⬆️', '选择地产', '点击你要升级的地产', () => {
+                                    renderBoard();
+                                });
+                            }},
+                            { type: 'modal-btn-cancel', text: '取消', callback: () => {
+                                nextPlayer();
+                            }}
+                        ]);
+                    } else {
+                        showEventModal('⚡', '发电厂', '没有可升级的地产', () => {
+                            nextPlayer();
+                        });
+                    }
+                } else {
+                    teleportMode = true;
+                    showEventModal('🚀', '设施特权', '选择一个地块传送', () => {
+                        renderBoard();
+                    });
+                }
+            } else {
+                const owner = players[facility.owner];
+                if (owner.inJail) {
+                    addLog(`🔒 地主 ${owner.name} 在监狱，免租`);
+                    showEventModal('🔒', '地主在监狱', `${owner.name} 在监狱中，免收租金`, () => {
+                        nextPlayer();
+                    });
+                } else {
+                    payFacilityRent(idx, pos);
+                }
+            }
+        }
+
+        function buyFacility(idx, pos) {
+            const p = players[idx];
+            const facility = board[pos];
+            
+            p.money -= facility.price;
+            p.properties.push(pos);
+            facility.owner = idx;
+            
+            const spaceEl = document.querySelector(`[data-id="${pos}"]`);
+            spaceEl.style.borderColor = p.color;
+            spaceEl.style.borderWidth = '3px';
+            
+            addLog(`✅ ${p.name} 购买了 ${facility.name}`);
+            renderPlayers();
+            updateCurrent();
+            nextPlayer();
+        }
+
+        function payFacilityRent(idx, pos) {
+            const facility = board[pos];
+            const p = players[idx];
+            const owner = players[facility.owner];
+            
+            let rent = facility.rent;
+            
+            if (hasFacilitySet(facility.owner)) {
+                rent *= 2;
+                addLog(`🎨 ${owner.name} 拥有全部设施，租金翻倍！`);
+            }
+            
+            if (p.money >= rent) {
+                p.money -= rent;
+                owner.money += rent;
+                addLog(`💸 ${p.name} 向 ${owner.name} 支付 ￥${rent} 租金`);
+                showEventModal('💸', '支付租金', `向 ${owner.name} 支付 ￥${rent}`, () => {
+                    renderPlayers();
+                    updateCurrent();
+                    checkGameStatus();
+                    nextPlayer();
+                });
+            } else {
+                handleBankruptcy(idx);
+            }
+        }
+
+        function buyProperty(idx, pos) {
+            const p = players[idx];
+            const prop = board[pos];
+            
+            p.money -= prop.price;
+            p.properties.push(pos);
+            prop.owner = idx;
+            
+            addLog(`✅ ${p.name} 购买了 ${prop.name}`);
+            renderPlayers();
+            updateCurrent();
+            renderBoard();
+            nextPlayer();
+        }
+
+        function upgradeProperty(idx, pos) {
+            const p = players[idx];
+            const prop = board[pos];
+            const upgradePrice = Math.floor(prop.price * 0.4);
+            
+            p.money -= upgradePrice;
+            prop.level += 1;
+            
+            addLog(`⬆️ ${p.name} 升级 ${prop.name} 到 Lv.${prop.level}`);
+            renderPlayers();
+            updateCurrent();
+            renderBoard();
+            nextPlayer();
+        }
+
+        function hasFullSet(idx, groupIdx) {
+            const group = COLOR_GROUPS[groupIdx];
+            if (!group || idx === null) return false;
+            return group.ids.every(id => board[id].owner === idx);
+        }
+
+        function hasFacilitySet(idx) {
+            return FACILITY_IDS.every(id => board[id].owner === idx);
+        }
+
+        function payRent(idx, pos) {
+            const prop = board[pos];
+            const p = players[idx];
+            const owner = players[prop.owner];
+            
+            let rent = prop.rent[prop.level];
+            
+            if (hasFullSet(prop.owner, prop.group)) {
+                rent *= 2;
+                addLog(`🎨 ${owner.name} 拥有整套地产，租金翻倍！`);
+            }
+            
+            if (p.money >= rent) {
+                p.money -= rent;
+                owner.money += rent;
+                addLog(`💸 ${p.name} 向 ${owner.name} 支付 ￥${rent} 租金`);
+                showEventModal('💸', '支付租金', `向 ${owner.name} 支付 ￥${rent}`, () => {
+                    renderPlayers();
+                    updateCurrent();
+                    checkGameStatus();
+                    nextPlayer();
+                });
+            } else {
+                handleBankruptcy(idx);
+            }
+        }
+
+        function handleBankruptcy(idx) {
+            const p = players[idx];
+            addLog(`💔 ${p.name} 破产了！`);
+            p.active = false;
+            board.forEach((s, i) => {
+                if (s.owner === idx) {
+                    s.owner = null;
+                    s.level = 0;
+                }
+            });
+            showEventModal('💔', '破产', `${p.name} 破产了！`, () => {
+                renderPlayers();
+                updateCurrent();
+                renderBoard();
+                checkGameStatus();
+                nextPlayer();
+            });
+        }
+
+        function checkGameStatus() {
+            const activePlayers = players.filter(p => p.active);
+            
+            if (activePlayers.length === 1) {
+                showVictory(activePlayers[0]);
+                return;
+            }
+            
+            if (!finalCircleShown && activePlayers.length <= Math.ceil(players.length / 2) && activePlayers.length > 1) {
+                finalCircleShown = true;
+                showFinalCircle(activePlayers);
+            }
+        }
+
+        function showFinalCircle(activePlayers) {
+            const sorted = [...activePlayers].sort((a, b) => b.money - a.money);
+            let rankText = '决赛圈排名：\n\n';
+            sorted.forEach((p, i) => {
+                rankText += `${i + 1}. ${p.name} - ￥${p.money}\n`;
+            });
+            
+            showEventModal('🔥', '决赛圈！', rankText, () => {});
+        }
+
+        function showVictory(winner) {
+            celebrate();
+            setTimeout(() => {
+                showEventModal('🎉', '游戏胜利！', `恭喜 ${winner.name} 获得胜利！\n\n总资产: ￥${winner.money}\n拥有地产: ${winner.properties.length} 处`, () => {});
+            }, 1000);
+        }
+
+        function celebrate() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            document.body.appendChild(celebration);
+            
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#F7DC6F', '#BB8FCE'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    celebration.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+            
+            setTimeout(() => celebration.remove(), 4000);
+        }
+
+        function triggerEvent(idx, type) {
+            const events = type === 'chance' ? CHANCE_EVENTS : DESTINY_EVENTS;
+            const event = events[Math.floor(Math.random() * events.length)];
+            const p = players[idx];
+            
+            if (event.type === 'money') {
+                p.money += event.amount;
+                addLog(`${event.amount > 0 ? '💵' : '💸'} ${p.name}: ${event.text}`);
+                showEventModal(event.amount > 0 ? '💰' : '💸', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    renderPlayers();
+                    updateCurrent();
+                    checkGameStatus();
+                    nextPlayer();
+                });
+            } else if (event.type === 'move') {
+                addLog(`🎯 ${p.name}: ${event.text}`);
+                const newPos = (p.position + event.steps + board.length) % board.length;
+                showEventModal('🎯', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    movePlayer(idx, newPos);
+                });
+            } else if (event.type === 'jail') {
+                addLog(`🚔 ${p.name}: ${event.text}`);
+                showEventModal('🚔', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    sendToJail(idx);
+                });
+            } else if (event.type === 'pass') {
+                p.jailPass++;
+                addLog(`🎫 ${p.name}: ${event.text}`);
+                showEventModal('🎫', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    renderPlayers();
+                    updateCurrent();
+                    nextPlayer();
+                });
+            } else if (event.type === 'teleport') {
+                addLog(`✨ ${p.name}: ${event.text}`);
+                showEventModal('✨', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    p.position = event.target;
+                    updatePiecePos(p.id, event.target);
+                    setTimeout(() => handleLanding(idx, event.target), 600);
+                });
+            } else if (event.type === 'chooseTeleport') {
+                addLog(`✨ ${p.name}: ${event.text}`);
+                teleportMode = true;
+                showEventModal('✨', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    renderBoard();
+                });
+            } else if (event.type === 'repair') {
+                const propertyCount = p.properties.filter(id => board[id].type === 'property').length;
+                const cost = propertyCount * 200;
+                p.money -= cost;
+                addLog(`🔧 ${p.name}: ${event.text} - 支付 ￥${cost}`);
+                showEventModal('🔧', type === 'chance' ? '机会卡' : '命运卡', `${event.text}\n共 ${propertyCount} 个地块\n支付 ￥${cost}`, () => {
+                    if (p.money < 0) {
+                        handleBankruptcy(idx);
+                    } else {
+                        renderPlayers();
+                        updateCurrent();
+                        checkGameStatus();
+                        nextPlayer();
+                    }
+                });
+            } else if (event.type === 'chairman') {
+                const activePlayers = players.filter(pl => pl.active && pl.id !== p.id);
+                const cost = activePlayers.length * 500;
+                p.money -= cost;
+                activePlayers.forEach(pl => pl.money += 500);
+                addLog(`👔 ${p.name}: ${event.text} - 支付 ￥${cost}`);
+                showEventModal('👔', type === 'chance' ? '机会卡' : '命运卡', `${event.text}\n向 ${activePlayers.length} 位玩家各支付 ￥500\n共支付 ￥${cost}`, () => {
+                    if (p.money < 0) {
+                        handleBankruptcy(idx);
+                    } else {
+                        renderPlayers();
+                        updateCurrent();
+                        checkGameStatus();
+                        nextPlayer();
+                    }
+                });
+            } else if (event.type === 'birthday') {
+                const activePlayers = players.filter(pl => pl.active && pl.id !== p.id);
+                const income = activePlayers.length * 100;
+                p.money += income;
+                activePlayers.forEach(pl => pl.money -= 100);
+                addLog(`🎂 ${p.name}: ${event.text} - 收取 ￥${income}`);
+                showEventModal('🎂', type === 'chance' ? '机会卡' : '命运卡', `${event.text}\n向 ${activePlayers.length} 位玩家各收取 ￥100\n共收取 ￥${income}`, () => {
+                    renderPlayers();
+                    updateCurrent();
+                    checkGameStatus();
+                    nextPlayer();
+                });
+            } else if (event.type === 'nearestUtility') {
+                const currentPos = p.position;
+                const nearestUtility = findNearestUtility(currentPos);
+                const utility = board[nearestUtility];
+                
+                addLog(`🚀 ${p.name}: ${event.text}`);
+                showEventModal('🚀', type === 'chance' ? '机会卡' : '命运卡', event.text, () => {
+                    p.position = nearestUtility;
+                    updatePiecePos(p.id, nearestUtility);
+                    
+                    setTimeout(() => {
+                        if (utility.owner === null) {
+                            if (p.money >= utility.price) {
+                                showConfirm(`购买 ${utility.name}\n价格: ￥${utility.price}`, () => {
+                                    buyFacility(idx, nearestUtility);
+                                }, () => {
+                                    nextPlayer();
+                                });
+                            } else {
+                                showEventModal('❌', '资金不足', '无法购买设施', () => {
+                                    nextPlayer();
+                                });
+                            }
+                        } else if (utility.owner === idx) {
+                            showEventModal('🏠', '自己的设施', '这是你的设施', () => {
+                                nextPlayer();
+                            });
+                        } else {
+                            const owner = players[utility.owner];
+                            let rent = utility.rent;
+                            
+                            if (event.multiplier === 10) {
+                                const dice1 = Math.floor(Math.random() * 6) + 1;
+                                const dice2 = Math.floor(Math.random() * 6) + 1;
+                                const total = dice1 + dice2;
+                                rent = total * 10;
+                                addLog(`🎲 投出 ${dice1}+${dice2}=${total}，租金为 ￥${rent}`);
+                            } else if (event.multiplier === 2) {
+                                rent *= 2;
+                            }
+                            
+                            if (p.money >= rent) {
+                                p.money -= rent;
+                                owner.money += rent;
+                                addLog(`💸 ${p.name} 向 ${owner.name} 支付 ￥${rent}`);
+                                showEventModal('💸', '支付租金', `向 ${owner.name} 支付 ￥${rent}`, () => {
+                                    renderPlayers();
+                                    updateCurrent();
+                                    checkGameStatus();
+                                    nextPlayer();
+                                });
+                            } else {
+                                handleBankruptcy(idx);
+                            }
+                        }
+                    }, 600);
+                });
+            }
+        }
+
+        function findNearestUtility(currentPos) {
+            let nearest = FACILITY_IDS[0];
+            let minDistance = Infinity;
+            
+            FACILITY_IDS.forEach(utilityPos => {
+                let distance = (utilityPos - currentPos + board.length) % board.length;
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = utilityPos;
+                }
+            });
+            
+            return nearest;
+        }
+
+        function teleportToSpace(spaceId) {
+            if (!teleportMode && !upgradeMode) return;
+            
+            if (teleportMode) {
+                teleportMode = false;
+                const p = players[currentIdx];
+                p.position = spaceId;
+                updatePiecePos(p.id, spaceId);
+                addLog(`✨ ${p.name} 传送到 ${board[spaceId].name}`);
+                
+                renderBoard();
+                setTimeout(() => handleLanding(currentIdx, spaceId), 600);
+            } else if (upgradeMode) {
+                upgradeFromFoundation(spaceId);
+            }
+        }
+
+        function nextPlayer() {
+            let next = (currentIdx + 1) % players.length;
+            let tries = 0;
+            
+            while (!players[next].active && tries < players.length) {
+                next = (next + 1) % players.length;
+                tries++;
+            }
+            
+            currentIdx = next;
+            
+            document.getElementById('diceBtn').disabled = false;
+            
+            updateCurrent();
+            renderPlayers();
+        }
+
+        function showModal(icon, title, text, buttons) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalIcon').textContent = icon;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalText').textContent = text;
+            
+            const buttonsContainer = document.getElementById('modalButtons');
+            buttonsContainer.innerHTML = '';
+            
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `modal-btn ${btn.type}`;
+                button.textContent = btn.text;
+                button.onclick = () => {
+                    modal.classList.remove('show');
+                    if (btn.callback) btn.callback();
+                };
+                buttonsContainer.appendChild(button);
+            });
+            
+            modal.classList.add('show');
+        }
+
+        function showAlert(text, callback) {
+            showModal('⚠️', '提示', text, [
+                { type: 'modal-btn-confirm', text: '确定', callback }
+            ]);
+        }
+
+        function showConfirm(text, onConfirm, onCancel) {
+            showModal('❓', '确认', text, [
+                { type: 'modal-btn-confirm', text: '确认', callback: onConfirm },
+                { type: 'modal-btn-cancel', text: '取消', callback: onCancel }
+            ]);
+        }
+
+        function showEventModal(icon, title, text, callback) {
+            showModal(icon, title, text, [
+                { type: 'modal-btn-confirm', text: '确定', callback }
+            ]);
+        }
+
+        function showPrompt(text, defaultValue, callback) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalIcon').textContent = '✏️';
+            document.getElementById('modalTitle').textContent = '输入';
+            
+            const textEl = document.getElementById('modalText');
+            textEl.innerHTML = `
+                <div style="margin-bottom: 15px;">${text}</div>
+                <input type="text" id="promptInput" value="${defaultValue}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+            `;
+            
+            const buttonsContainer = document.getElementById('modalButtons');
+            buttonsContainer.innerHTML = '';
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'modal-btn modal-btn-confirm';
+            confirmBtn.textContent = '确定';
+            confirmBtn.onclick = () => {
+                const value = document.getElementById('promptInput').value;
+                modal.classList.remove('show');
+                if (callback) callback(value);
+            };
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'modal-btn modal-btn-cancel';
+            cancelBtn.textContent = '取消';
+            cancelBtn.onclick = () => {
+                modal.classList.remove('show');
+            };
+            
+            buttonsContainer.appendChild(confirmBtn);
+            buttonsContainer.appendChild(cancelBtn);
+            
+            modal.classList.add('show');
+            
+            setTimeout(() => {
+                const input = document.getElementById('promptInput');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 100);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('colorPickerModal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target.id === 'colorPickerModal') {
+                        modal.classList.remove('show');
+                    }
+                });
+            }
+            
+            init();
+        });
+    </script>
+    <!-- Created by Parsifals(Github: Parsifal-1) -->
 </body>
 </html>
