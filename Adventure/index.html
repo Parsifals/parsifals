@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monopoly Adventure</title>
+    <link rel="stylesheet" href="./assets/style.css">
+    <!-- 引入字体图标 -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Orbitron:wght@500&family=Noto+Serif+SC:wght@500&display=swap" rel="stylesheet">
+    
+</head>
+<body class="theme-md3"> <!-- 默认 MD3 主题 -->
+
+    <!-- 动态背景 -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 顶部栏：主题与房间信息 -->
+    <nav class="top-bar">
+        <div class="nav-left">
+            <span class="brand-logo">MONOPOLY <span class="theme-label">for Material</span></span>
+        </div>
+        <div class="theme-switcher">
+            <button onclick="setTheme('theme-md3')" class="theme-btn t-md3" title="MD3风格"></button>
+            <button onclick="setTheme('theme-cyber')" class="theme-btn t-cyber" title="赛博朋克"></button>
+            <button onclick="setTheme('theme-paper')" class="theme-btn t-paper" title="极简纸张"></button>
+        </div>
+    </nav>
+
+    <div id="app">
+        <!-- 缩放控制 -->
+        <div class="map-zoom-controls">
+            <button id="zoom-in" title="放大">+</button>
+            <button id="zoom-reset" title="重置">1:1</button>
+            <button id="zoom-out" title="缩小">−</button>
+        </div>
+        
+        <!-- 主地图区域 -->
+        <div class="map-container">
+            <!-- 起点终点 -->
+            
+            <!-- 网格地图 -->
+            <div id="game-map" class="game-map"></div>
+        </div>
+
+
+
+        <!-- 骰子控制台 (悬浮设计) -->
+        <div class="control-dock">
+            <div class="dock-content">
+                <div class="dice-stage">
+                    <div id="dice-box" class="dice-box">
+                        <div id="dice" class="dice">
+                            <div class="face front">1</div>
+                            <div class="face back">6</div>
+                            <div class="face right">3</div>
+                            <div class="face left">4</div>
+                            <div class="face top">5</div>
+                            <div class="face bottom">2</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-status">
+                    <div class="status-label">当前回合</div>
+                    <div id="current-player-name" class="status-name">等待开始...</div>
+                </div>
+                <button id="btn-roll" class="roll-btn" disabled>ROLL</button>
+            </div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <div id="sidebar" class="sidebar collapsed">
+            <div class="sidebar-toggle" id="sidebar-toggle">≡</div>
+            <div class="sidebar-inner">
+                <div class="action-group">
+                    <button id="btn-start" class="side-btn primary">开始</button>
+                    <button id="btn-reset" class="side-btn secondary">重置</button>
+                    <button id="btn-add-player" class="side-btn normal">加人</button>
+                </div>
+                <div id="player-list" class="player-list"></div>
+            </div>
+            <!-- 折叠时显示的按钮组 -->
+            <div class="collapsed-buttons">
+                <button id="btn-start-collapsed" class="collapsed-btn primary">开始</button>
+                <button id="btn-reset-collapsed" class="collapsed-btn secondary">重置</button>
+                <button id="btn-add-collapsed" class="collapsed-btn normal">加人</button>
+            </div>
+            <!-- 折叠时显示的迷你玩家列表 -->
+            <div class="collapsed-players"></div>
+        </div>
+
+        <!-- 通用弹窗 -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 id="modal-title">TITLE</h3>
+                </div>
+                <div class="modal-body" id="modal-content">Content</div>
+                <div class="modal-footer">
+                    <button id="modal-confirm" class="btn-confirm">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 开发者菜单 -->
+        <div id="dev-trigger"></div>
+        <div id="dev-menu" class="hidden">
+            <div class="dev-title">
+                开发者工具
+                <button class="close-dev" id="close-dev">×</button>
+            </div>
+            <select id="dev-player-select"></select>
+            <input type="number" id="dev-steps" value="1" placeholder="移动步数">
+            <button id="dev-move-btn">移动</button>
+            <button id="dev-kick-btn">出局</button>
+            <button id="dev-revive-btn">复活</button>
+            <button id="dev-refresh-btn">刷新棋盘</button>
+        </div>
+    </div>
+
+    <script src="配置文件.js"></script>
+    <script src="./assets/game.js"></script>
+</body>
+</html>
