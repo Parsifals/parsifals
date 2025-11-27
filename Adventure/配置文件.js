@@ -10,8 +10,9 @@
  */
 
 // 普通事件池（随机抽取）
+// 格式：{ content: "事件内容", note: "备注（可选）" } 或直接字符串
 window.GAME_EVENTS = [
-    "原地不动",
+    { content: "原地不动", note: "跳过下一回合" },
     "全麦啤酒",
     "主持随机夸人（除自己）",
     "夸粉丝5句",
@@ -20,84 +21,60 @@ window.GAME_EVENTS = [
     "置顶卡一张",
     "撒娇八连",
     "后退1格",
-    "全麦数字炸弹（主持不参加，数字100以内由管理决定单独和主持说，输的发作品说自己是游戏黑洞）",
+    { content: "全麦数字炸弹", note: "主持不参加，数字100以内由管理决定单独和主持说，输的发作品说自己是游戏黑洞" },
     "带名字夸管理5句",
-    "直播徒步7.98公里",
+    { content: "直播徒步7.98公里", note: "需要完成直播任务" },
     "真心话：最尴尬的事",
     "前进2格",
     "发作品模仿一个动物",
     "后退5格",
-    "罚款减半卡（任务5.0时可用）",
+    { content: "罚款减半卡", note: "任务5.0时可用" },
     "7.98红包",
     "恶龙咆哮三声",
     "说两句土味情话",
     "全麦说家乡话",
     "个播时间加半小时",
-    "管理发作品，内容为平板支撑30s（男管理）",
-    "再来一次（在掷骰子一次）",
+    { content: "管理发作品", note: "内容为平板支撑30s（男管理）" },
+    { content: "再来一次", note: "在掷骰子一次" },
     "il项链一个",
     "后退3格",
-    "成语接龙（公屏扣最多的组合）",
-    "真心话：最近的糗事",
-    "大冒险：模仿猩猩",
+    { content: "成语接龙", note: "公屏扣最多的组合" },
+    "模仿猩猩",
     "获得红包：1元",
     "后退2格",
-    "大冒险：唱儿歌",
-    "真心话：初恋名字",
-    "指定对视10秒",
-    "大冒险：发朋友圈",
-    "大冒险：模仿动物",
-    "真心话：喜欢的人",
+    "唱歌",
 ];
 
 // 必须加载的事件（这些事件必定会随机出现在棋盘中）
 window.GAME_REQUIRED_EVENTS = [
-    "原地不动",
+    { content: "原地不动", note: "跳过下一回合" },
     "获得红包：5元",
-    "前进3格",
+    "前进2格",
     "后退3格",
-    "回到起点"
+    "唱歌",
+    { content: "成语接龙", note: "公屏扣最多的组合" },
+    { content: "再来一次", note: "在掷骰子一次" },
+    { content: "全麦数字炸弹", note: "主持不参加，数字100以内由管理决定单独和主持说，输的发作品说自己是游戏黑洞" },
+    { content: "回到起点", note: "直接回到起点重新开始" }
 ];
 window.GAME_CONFIG = {
     TOTAL_GRIDS: 68,
-    COLS: 9, // 每行9格 (v6 UI布局)
+    COLS: 9, // 棋盘列数
     BACKGROUND_IMAGE: './assets/bg.png', // 背景图路径
     COLORS: [
-        { name: '', value: '#ffadad' },
-		{ name: '', value: '#bdb2ff' },
-		{ name: '', value: '#FF6F00' },
-		{ name: '', value: '#D50000' },
-		{ name: '', value: '#FF1744' },
-		{ name: '', value: '#F50057' },
-		{ name: '', value: '#FF4081' },
-		{ name: '', value: '#3D5AFE' },
-		{ name: '', value: '#304FFE' },
-		{ name: '', value: '#2979FF' },
-		{ name: '', value: '#00B0FF' },
-		{ name: '', value: '#0097A7' },
-		{ name: '', value: '#00E676' },
-		{ name: '', value: '#00E676' },
-		{ name: '', value: '#00BCD4' },
-		{ name: '', value: '#FF6F00' },
-		{ name: '', value: '#673AB7' },
-		{ name: '', value: '#FF5722' },
-		{ name: '', value: '#1976D2' },
-		{ name: '', value: '#424242' },
+		{ name: '丁香紫', value: '#bdb2ff' },{ name: '紫晶蓝', value: '#673AB7' },
+		{ name: '薰衣紫', value: '#9B5DE5' },{ name: '青柠绿', value: '#00F5D4' },
+		{ name: '薄荷绿', value: '#6BCF7F' },{ name: '翡翠绿', value: '#00E676' },
+		{ name: '琥珀橙', value: '#FF6F00' },{ name: '碧玉绿', value: '#00BCD4' },
+		{ name: '珊瑚红', value: '#FF5722' },{ name: '青瓷蓝', value: '#0097A7' },
+		{ name: '胭脂粉', value: '#ffadad' },{ name: '海洋蓝', value: '#00BBF9' },
+		{ name: '珊瑚橙', value: '#FF6B6B' },{ name: '湖光蓝', value: '#00B0FF' },
+		{ name: '樱花粉', value: '#F15BB5' },{ name: '天青蓝', value: '#2979FF' },
+		{ name: '芙蓉粉', value: '#FF4081' },{ name: '宝石蓝', value: '#1976D2' },
+		{ name: '胭脂红', value: '#FF1744' },{ name: '靛青蓝', value: '#3D5AFE' },
+		{ name: '玫瑰红', value: '#F50057' },{ name: '藏青蓝', value: '#304FFE' },
+		{ name: '朱砂红', value: '#D50000' },{ name: '石墨灰', value: '#424242' },
     ],
-    STORAGE_KEY: 'monopoly_fusion_v1',
-    MAP_SEED: 'monopoly_map_v1' // 地图种子
+    STORAGE_KEY: 'monopoly_fusion_v1',  // 存储key
+    MAP_SEED: 'monopoly_map_v1'         // 地图种子
 };
-/*
-{ name: '珊瑚红', value: '#FF6B6B' },
-        { name: '青绿色', value: '#4ECDC4' },
-        { name: '天蓝色', value: '#45B7D1' },
-        { name: '薄荷绿', value: '#96CEB4' },
-        { name: '奶黄色', value: '#FFEEAD' },
-        { name: '橙黄色', value: '#FF9F43' },
-        { name: '晴空蓝', value: '#54A0FF' },
-        { name: '紫罗兰', value: '#5F27CD' },
-        { name: '樱花粉', value: '#FF9FF3' },
-        
-        { name: '青色', value: '#00D2D3' }
-		{ name: '', value: '#' }
-*/
